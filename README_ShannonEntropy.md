@@ -9,6 +9,7 @@ It computes Shannon Entropy (as in Claude Shannon) on bytes.
 * It will also read a file - binary, text, doesn't matter.  In that case, there are more options available to tune the analysis.  Notably:
     * Block Size -- How much data to process at once.  That is, how big is the buffer.
     * Window Offset -- How much to move the buffer each time.
+    * Input and output file paths
 * Write a CSV file with the results.
     * Try charting the 'chunk_count' and 'shannon_entropy' fields as a line chart in Excel
     * You should be able to spot outliers
