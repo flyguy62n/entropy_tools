@@ -50,7 +50,7 @@ def commandLineParser() -> argparse.ArgumentParser:
         '-w', '--window-offset',
         dest='windowOffset',
         type=int,
-        default=32,
+        default=16,
         help='Offset to move the read window by each iteration'
     )
 
@@ -110,14 +110,15 @@ def main():
                 result = entropy(block)
                 if args.verbose:
                     print (f'Chunk {chunk_count:>6} entropy: {result:.5f} / {entropy_ideal(len(block)):2f}\t{block}')
-                results.append({
-                    'filename': args.inputFile,
-                    'chunk_num': chunk_count,
-                    'shannon_entropy': result,
-                    'ideal_entropy': entropy_ideal(len(block)),
-                    'block_size': len(block),
-                    'content': block,
-                })
+                if args.outputFile:
+                    results.append({
+                        'filename': args.inputFile,
+                        'chunk_num': chunk_count,
+                        'shannon_entropy': result,
+                        'ideal_entropy': entropy_ideal(len(block)),
+                        'block_size': len(block),
+                        'content': block,
+                    })
                 chunk_count += args.windowOffset
                 inFile.seek(chunk_count, 0)
         if args.outputFile:
