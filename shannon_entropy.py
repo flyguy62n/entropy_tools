@@ -104,9 +104,6 @@ def main():
         results = []
         with open(args.inputFile, 'rb') as inFile:
             for block in iter(partial(inFile.read, args.blockSize), b''):
-                # If we've reached the end of the file, we'll have a short block and go ahead and stop
-                if len(block) < args.blockSize:
-                    break
                 result = entropy(block)
                 if args.verbose:
                     print (f'Chunk {chunk_count:>6} entropy: {result:.5f} / {entropy_ideal(len(block)):2f}\t{block}')
@@ -119,6 +116,9 @@ def main():
                         'block_size': len(block),
                         'content': block,
                     })
+                # If we've reached the end of the file, we'll have a short block and go ahead and stop
+                if len(block) < args.blockSize:
+                    break
                 chunk_count += args.windowOffset
                 inFile.seek(chunk_count, 0)
         if args.outputFile:
