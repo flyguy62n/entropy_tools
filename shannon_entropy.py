@@ -7,7 +7,6 @@ import sys
 import textwrap
 
 from functools import partial
-from pathlib import Path
 
 
 def commandLineParser() -> argparse.ArgumentParser:
@@ -63,12 +62,6 @@ def commandLineParser() -> argparse.ArgumentParser:
         help='CSV file to write the results to',
     )
     outputControl = parser.add_argument(
-        '-r', '--review-file',
-        dest='reviewFile',
-        default='',
-        help='A text file containing a list (one per line) of blocks to print to the screen',
-    )
-    outputControl = parser.add_argument(
         '-v', '--verbose',
         dest='verbose',
         action='count',
@@ -106,30 +99,6 @@ def main():
     args=commandLineParser()
     print(args)
 
-    if args.reviewFile:
-        print(f'Reviewing results using {args.reviewFile}')
-        # Process the review file contents to produce a list of interesting blocks
-        try:
-            with open(args.reviewFile, 'r') as reviewFile:
-                try:
-                    interestingBlocks = [int(line.strip()) for line in reviewFile.readlines()]
-                except ValueError:
-                    print('Review file includes non-numeric content.')
-                    sys.exit(1)
-        except FileNotFoundError:
-            print(f'Review file not found: {args.reviewFile}')
-            sys.exit(1)
-        
-            
-        # Read through the file to find the interesting blocks
-        chunk_count = 0
-        with open(args.inputFile, 'rb') as inFile:
-            for block in iter(partial(inFile.read, args.blockSize), b''):
-                if chunk_count in interestingBlocks:
-                    print(f'Block {chunk_count}: {block}')
-                chunk_count += args.windowOffset
-                inFile.seek(chunk_count, 0)
-        sys.exit(0)
     if args.inputFile:
         chunk_count = 0
         results = []
@@ -140,19 +109,20 @@ def main():
                     break
                 result = entropy(block)
                 if args.verbose:
-                    print (f'Chunk {chunk_count} entropy ({len(block)} bytes): {result} / {entropy_ideal(len(block))}')
+                    print (f'Chunk {chunk_count:>6} entropy: {result:.5f} / {entropy_ideal(len(block)):2f}\t{block}')
                 results.append({
                     'filename': args.inputFile,
                     'chunk_num': chunk_count,
                     'shannon_entropy': result,
                     'ideal_entropy': entropy_ideal(len(block)),
                     'block_size': len(block),
+                    'content': block,
                 })
                 chunk_count += args.windowOffset
                 inFile.seek(chunk_count, 0)
         if args.outputFile:
             with open(args.outputFile, 'w', newline='') as csvfile:
-                fieldNames=['filename', 'chunk_num', 'shannon_entropy', 'ideal_entropy', 'block_size']
+                fieldNames=['filename', 'chunk_num', 'shannon_entropy', 'ideal_entropy', 'block_size', 'content']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldNames)
                 writer.writeheader()
                 for result in results:
